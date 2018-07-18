@@ -1,6 +1,6 @@
 # AccessData AD Lab 6.4.x for Microsoft Azure
 
-This folder contains the ARM Templates for Microsoft Azure necessary to deploy a funnly functional AD Lab 6.4x environment.
+This folder contains the ARM Templates for Microsoft Azure necessary to deploy a fully functional AD Lab 6.4x environment.
 
 ## Prerequisites
 
