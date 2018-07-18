@@ -4,7 +4,7 @@ This folder contains the ARM Templates for Microsoft Azure necessary to deploy a
 
 ## Prerequisites
 
-This software requires an active and valid license to use. This license is NOT included as part of the template. The use of this Template in no way provides any license, warranty or support offering for the software contained herein.
+This software requires an active and valid license to use. This license is _**NOT**_ included as part of the template. The use of this Template in no way provides any license, warranty or support offering for the software contained herein.
 
 ## Contact
 
