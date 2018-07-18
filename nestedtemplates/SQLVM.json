@@ -1,0 +1,219 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "SQLVMName": {
+      "type": "string",
+      "metadata": {
+        "description": "DPM VM Name"
+      }
+    },
+    "SQLVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_D16s_v3",
+      "metadata": {
+        "description": "The size of the virtual machines"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing VNET"
+      }
+    },
+    "SQLSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet in which you want to deploy the DPM VM"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the AD domain"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username of the account on the domain"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password of the account on the domain"
+      }
+    },
+    "ouPath": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: 'OU=testOU; DC=domain; DC=Domain; DC=com"
+      }
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[parameters('location')]"
+    }
+  },
+  "variables": {
+    "nicName": "[concat(parameters('SQLVMName'),'-Nic')]",
+    "vnetID": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetId": "[concat(variables('vnetID'),'/subnets/', parameters('SQLSubnetName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-06-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetId')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('SQLVMName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('SQLVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('SQLVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "accessdata-group",
+            "offer": "adlab64-sw-cloud",
+            "sku": "22000112",
+            "version": "1.0.1"
+          },
+          "osDisk": {
+            "name": "SQLVM-osdisk",
+            "createOption": "FromImage"
+          },
+          "managedDisk": {
+            "storageAccountType": "Premium_LRS"
+          }
+        },
+        "dataDisks": [
+          {
+            "diskSizeGB": 2048,
+            "name": "[concat(parameters('SQLVMName'),'-SQLData')]",
+            "caching": "ReadOnly",
+            "lun": 0,
+            "createOption": "Empty",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          },
+          {
+            "diskSizeGB": 1023,
+            "name": "[concat(parameters('SQLVMName'),'-SQLLogs')]",
+            "lun": 1,
+            "createOption": "Empty",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          },
+          {
+            "diskSizeGB": 1023,
+            "name": "[concat(parameters('SQLVMName'),'-SQLTemp')]",
+            "caching": "ReadOnly",
+            "lun": 2,
+            "createOption": "Empty",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          }
+        ],
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('SQLVMName'),'/joindomain')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('SQLVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[parameters('domainName')]",
+          "OUPath": "[parameters('ouPath')]",
+          "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('adminPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('SQLVMName'),'/customscriptextension')]",
+      "apiVersion": "2017-03-30",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('SQLVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.8",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "https://adstoragefile.blob.core.windows.net/scripts/SQLScript.ps1"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File SQLScript.ps1",
+          "StorageAccountName": "adstoragefile",
+          "StorageAccountKey": "sUjsNKxdY0mdl/xXEDj7mTJSjOJKjOdfzOUn4RdnRqhoHQbkXeUJtudYZq/tjTCQxW/0kRZTFHdLqIl5tq+RBg=="
+        }
+      }
+    }
+  ]
+}

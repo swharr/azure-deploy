@@ -1,0 +1,766 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "AD VM Name": {
+      "type": "string",
+      "defaultValue": "AD-DCVM-01",
+      "metadata": {
+        "description": "Name of the Domain Controller"
+      }
+    },
+    "AD VM Size": {
+      "type": "string",
+      "defaultValue": "Standard_A1",
+      "metadata": {
+        "description": "Domain Controller Size"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "AccessData-Vnet",
+      "metadata": {
+        "description": "Virtual Network Name"
+      }
+    },
+    "virtualNetworkAddressRange": {
+      "type": "string",
+      "defaultValue": "192.168.0.0/16",
+      "metadata": {
+        "description": "Virtual Network Address Range"
+      }
+    },
+    "DMZ SubnetName": {
+      "type": "string",
+      "defaultValue": "DMZ-Subnet",
+      "metadata": {
+        "description": "DMZ subnet Name"
+      }
+    },
+    "DMZ SubnetAddressRange": {
+      "type": "string",
+      "defaultValue": "172.168.1.0/24",
+      "metadata": {
+        "description": "DMZ subnet Address Range"
+      }
+    },
+    "AD SubnetName": {
+      "type": "string",
+      "defaultValue": "AD-Subnet",
+      "metadata": {
+        "description": "AD subnet Name"
+      }
+    },
+    "AD SubnetAddressRange": {
+      "type": "string",
+      "defaultValue": "172.168.2.0/24",
+      "metadata": {
+        "description": "AD subnet Address Range"
+      }
+    },
+    "InfraSubnetName": {
+      "type": "string",
+      "defaultValue": "Infra-Subnet",
+      "metadata": {
+        "description": "Infrastructure Subnet Name"
+      }
+    },
+    "InfraSubnetAddressRange": {
+      "type": "string",
+      "defaultValue": "172.168.3.0/24",
+      "metadata": {
+        "description": "Infrastructure Subnet Address Range"
+      }
+    },
+    "SQL SubnetName": {
+      "type": "string",
+      "defaultValue": "SQL-Subnet",
+      "metadata": {
+        "description": "SQL Subnet Name"
+      }
+    },
+    "SQL SubnetAddressRange": {
+      "type": "string",
+      "defaultValue": "172.168.4.0/24",
+      "metadata": {
+        "description": "SQL subnet Address Range"
+      }
+    },
+    "AD StatiCIP": {
+      "type": "string",
+      "defaultValue": "172.168.2.5",
+      "metadata": {
+        "description": "Choose an IP from AD subnet Address range to set it as a static IP for Domain Controller"
+      }
+    },
+    "JBVMName": {
+      "type": "string",
+      "defaultValue": "AD-JB-01",
+      "metadata": {
+        "description": "Jumpbox VM Name"
+      }
+    },
+    "JBVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_A1",
+      "metadata": {
+        "description": "Jumpbox Vm Size"
+      }
+    },
+    "LabVMName": {
+      "type": "string",
+      "defaultValue": "AD-Labvm-01",
+      "metadata": {
+        "description": "Lab VM Name"
+      }
+    },
+    "LabVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2ms",
+      "metadata": {
+        "description": "Lab VM Size"
+      }
+    },
+    "SQLVMName": {
+      "type": "string",
+      "defaultValue": "AD-SQLvm-01",
+      "metadata": {
+        "description": "SQL VM Name"
+      }
+    },
+    "SQLVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_D16s_v3",
+      "metadata": {
+        "description": "SQL VM Size"
+      }
+    },
+    "pDPMVMName": {
+      "type": "string",
+      "defaultValue": "AD-dpmvm-01",
+      "metadata": {
+        "description": "DPM VM Name"
+      }
+    },
+    "pDPMVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_D8s_v3",
+      "metadata": {
+        "description": "DPM VM Size"
+      }
+    },
+    "DPEVMSSName": {
+      "type": "string",
+      "defaultValue": "DPE-VMSS",
+      "metadata": {
+        "description": "DPE VM Name - Name should be less that or equal to 7 characters"
+      }
+    },
+    "DPEVMSize": {
+      "type": "string",
+      "defaultValue": "Standard_D16_v3",
+      "metadata": {
+        "description": "VM size for the Distributed Processing Engines (DPEs)"
+      }
+    },
+    "DPEVMSSInstanceCount": {
+      "type": "int",
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of DPE members in the scale group.."
+      }
+    },
+    "AdminUsername": {
+      "type": "string",
+      "defaultValue": "adlabadmin",
+      "metadata": {
+        "description": "The name of the administrator account of the new VM and domain"
+      }
+    },
+    "AdminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and domain"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "adlab.local",
+      "metadata": {
+        "description": "The FQDN of the Active Directory Domain to be created"
+      }
+    },
+    "ouname": {
+      "type": "string",
+      "defaultValue": "Lab",
+      "metadata": {
+        "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: 'OU=Lab,DC=Domain,DC=local"
+      }
+    },
+    "ouPath": {
+      "type": "string",
+      "defaultValue": "OU=TestOU; DC=adlab; DC=local",
+      "metadata": {
+        "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: 'OU=testOU; DC=domain; DC=Domain; DC=com"
+      }
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of resources, such as templates and DSC modules, that the template depends on"
+      },
+      "defaultValue": "[deployment().properties.templateLink.uri]"
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Auto-generated token to access _artifactsLocation"
+      },
+      "defaultValue": ""
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    }
+  },
+  "variables": {
+    "adnicName": "AD-DCVM-01-nic"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "VNet",
+      "apiVersion": "2018-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnet.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "virtualNetworkAddressRange": {
+            "value": "[parameters('virtualNetworkAddressRange')]"
+          },
+          "DMZ SubnetName": {
+            "value": "[parameters('DMZ SubnetName')]"
+          },
+          "DMZ SubnetAddressRange": {
+            "value": "[parameters('DMZ SubnetAddressRange')]"
+          },
+          "AD SubnetName": {
+            "value": "[parameters('AD SubnetName')]"
+          },
+          "AD SubnetAddressRange": {
+            "value": "[parameters('AD SubnetAddressRange')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "InfraSubnetAddressRange": {
+            "value": "[parameters('InfraSubnetAddressRange')]"
+          },
+          "SQL SubnetName": {
+            "value": "[parameters('SQL SubnetName')]"
+          },
+          "SQL SubnetAddressRange": {
+            "value": "[parameters('SQL SubnetAddressRange')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('adNicName')]",
+      "apiVersion": "2018-04-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/VNet"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('AD StaticIP')]",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('AD SubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('AD VM Name')]",
+      "apiVersion": "2018-04-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('adNicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('AD VM Size')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('ad VM Name')]",
+          "adminUsername": "[parameters('AdminUsername')]",
+          "adminPassword": "[parameters('AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2016-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(parameters('ad VM Name'), '-OSDisk')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "[concat(parameters('ad VM Name'), '-data-disk')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": 256,
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('adNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "type": "extensions",
+          "name": "CreateADForest",
+          "apiVersion": "2018-04-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('ad VM Name'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.19",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "ModulesUrl": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateADPDC.zip', parameters('_artifactsLocationSasToken')))]",
+              "ConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
+              "Properties": {
+                "DomainName": "[parameters('domainName')]",
+                "AdminCreds": {
+                  "UserName": "[parameters('AdminUsername')]",
+                  "Password": "PrivateSettingsRef:AdminPassword"
+                }
+              }
+            },
+            "protectedSettings": {
+              "Items": {
+                "AdminPassword": "[parameters('AdminPassword')]"
+              }
+            }
+          }
+        },
+        {
+          "type": "extensions",
+          "name": "CustomScriptExtension",
+          "apiVersion": "2018-04-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('ad VM Name'))]",
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('ad VM Name'), 'CreateADForest')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.8",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[uri(parameters('_artifactsLocation'), concat('customscripts/updateou.ps1', parameters('_artifactsLocationSasToken')))]"
+              ]
+            },
+            "protectedSettings": {
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File \"./customscripts/updateou.ps1\"', ' -OUname ', parameters('ouname'), ' -DomainName ', parameters('DomainName'), ' -Username ', parameters('AdminUsername'), ' -Password ', parameters('AdminPassword'))]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "UpdateVNetDNS",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('ad VM Name'), 'CreateADForest')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnet-with-dns-server.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "virtualNetworkAddressRange": {
+            "value": "[parameters('virtualNetworkAddressRange')]"
+          },
+          "DMZ SubnetName": {
+            "value": "[parameters('DMZ SubnetName')]"
+          },
+          "DMZ SubnetAddressRange": {
+            "value": "[parameters('DMZ SubnetAddressRange')]"
+          },
+          "AD SubnetName": {
+            "value": "[parameters('AD SubnetName')]"
+          },
+          "AD SubnetAddressRange": {
+            "value": "[parameters('AD SubnetAddressRange')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "InfraSubnetAddressRange": {
+            "value": "[parameters('InfraSubnetAddressRange')]"
+          },
+          "SQL SubnetName": {
+            "value": "[parameters('SQL SubnetName')]"
+          },
+          "SQL SubnetAddressRange": {
+            "value": "[parameters('SQL SubnetAddressRange')]"
+          },
+          "DNSServerAddress": {
+            "value": [
+              "[parameters('AD StaticIP')]"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "JBVM",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/JBVM.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "JBVMName": {
+            "value": "[parameters('JBVMName')]"
+          },
+          "JBVMSize": {
+            "value": "[parameters('JBVMSize')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "DMZSubnetName": {
+            "value": "[parameters('DMZ SubnetName')]"
+          },
+          "AdminUsername": {
+            "value": "[parameters('AdminUsername')]"
+          },
+          "AdminPassword": {
+            "value": "[parameters('AdminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "domainJoinOptions": {
+            "value": "[parameters('domainJoinOptions')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "LabVM",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/LabVM.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "LabVMName": {
+            "value": "[parameters('LabVMName')]"
+          },
+          "LabVMSize": {
+            "value": "[parameters('LabVMSize')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('AdminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('AdminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "domainJoinOptions": {
+            "value": "[parameters('domainJoinOptions')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "SQLVM",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/SQLVM.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "SQLVMName": {
+            "value": "[parameters('SQLVMName')]"
+          },
+          "SQLVMSize": {
+            "value": "[parameters('SQLVMSize')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "SQLSubnetName": {
+            "value": "[parameters('SQL SubnetName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('AdminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('AdminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "domainJoinOptions": {
+            "value": "[parameters('domainJoinOptions')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "DPMVM",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/PDPMVM.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "pDPMVMName": {
+            "value": "[parameters('pDPMVMName')]"
+          },
+          "pDPMVMSize": {
+            "value": "[parameters('pDPMVMSize')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('AdminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('AdminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "domainJoinOptions": {
+            "value": "[parameters('domainJoinOptions')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "DPE-VMSS",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/DPE-VMSS.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "DPEVMSSName": {
+            "value": "[parameters('DPEVMSSName')]"
+          },
+          "DPEVMSize": {
+            "value": "[parameters('DPEVMSize')]"
+          },
+          "DPEVMSSInstanceCount": {
+            "value": "[parameters('DPEVMSSInstanceCount')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('AdminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('AdminPassword')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          },
+          "ouPath": {
+            "value": "[parameters('ouPath')]"
+          },
+          "domainJoinOptions": {
+            "value": "[parameters('domainJoinOptions')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "UpdateNSG",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/DPE-VMSS",
+        "Microsoft.Resources/deployments/DPMVM",
+        "Microsoft.Resources/deployments/SQLVM",
+        "Microsoft.Resources/deployments/LabVM",
+        "Microsoft.Resources/deployments/JBVM"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnet-with-dns-server-NSG.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "virtualNetworkAddressRange": {
+            "value": "[parameters('virtualNetworkAddressRange')]"
+          },
+          "DMZ SubnetName": {
+            "value": "[parameters('DMZ SubnetName')]"
+          },
+          "DMZ SubnetAddressRange": {
+            "value": "[parameters('DMZ SubnetAddressRange')]"
+          },
+          "AD SubnetName": {
+            "value": "[parameters('AD SubnetName')]"
+          },
+          "AD SubnetAddressRange": {
+            "value": "[parameters('AD SubnetAddressRange')]"
+          },
+          "InfraSubnetName": {
+            "value": "[parameters('InfraSubnetName')]"
+          },
+          "InfraSubnetAddressRange": {
+            "value": "[parameters('InfraSubnetAddressRange')]"
+          },
+          "SQL SubnetName": {
+            "value": "[parameters('SQL SubnetName')]"
+          },
+          "SQL SubnetAddressRange": {
+            "value": "[parameters('SQL SubnetAddressRange')]"
+          },
+          "DNSServerAddress": {
+            "value": [
+              "[parameters('AD StaticIP')]"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "virtualNetworkName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the Virtual Network to Create"
+        }
+      },
+      "virtualNetworkAddressRange": {
+        "type": "string",
+        "metadata": {
+          "description": "The address range of the new VNET in CIDR format"
+        },
+        "defaultValue": "10.0.0.0/16"
+      },
+      "DMZ SubnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the subnet created in the new VNET"
+        }
+      },
+      "DMZ SubnetAddressRange": {
+        "type": "string",
+        "metadata": {
+          "description": "The address range of the subnet created in the new VNET"
+        },
+        "defaultValue": "10.0.0.0/24"
+      },
+      "AD SubnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the subnet created in the new VNET"
+        }
+      },
+      "AD SubnetAddressRange": {
+        "type": "string",
+        "metadata": {
+          "description": "The address range of the subnet created in the new VNET"
+        },
+        "defaultValue": "10.0.0.0/24"
+      },
+      "InfraSubnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the subnet created in the new VNET"
+        }
+      },
+      "InfraSubnetAddressRange": {
+        "type": "string",
+        "metadata": {
+          "description": "The address range of the subnet created in the new VNET"
+        },
+        "defaultValue": "10.0.0.0/24"
+      },
+      "SQL SubnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the subnet created in the new VNET"
+        }
+      },
+      "SQL SubnetAddressRange": {
+        "type": "string",
+        "metadata": {
+          "description": "The address range of the subnet created in the new VNET"
+        },
+        "defaultValue": "10.0.0.0/24"
+      },
+      "DNSServerAddress": {
+        "type": "array",
+        "metadata": {
+          "description": "The DNS address(es) of the DNS Server(s) used by the VNET"
+        }
+      },
+    "location": {
+      "type": "string",
+      "defaultValue": "[parameters('location')]"
+		}
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[parameters('virtualNetworkName')]",
+        "apiVersion": "2017-06-01",
+        "location": "[parameters('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[parameters('virtualNetworkAddressRange')]"
+            ]
+          },
+          "dhcpOptions": {
+            "dnsServers": "[parameters('DNSServerAddress')]"
+          },
+          "subnets": [
+            {
+              "name": "[parameters('DMZ SubnetName')]",
+              "properties": {
+                "addressPrefix": "[parameters('DMZ SubnetAddressRange')]"
+              }
+            },
+            {
+                "name": "[parameters('AD SubnetName')]",
+                "properties": {
+                  "addressPrefix": "[parameters('AD SubnetAddressRange')]"
+                }
+              },
+              {
+                "name": "[parameters('InfraSubnetName')]",
+                "properties": {
+                  "addressPrefix": "[parameters('InfraSubnetAddressRange')]"
+                }
+              },
+              {
+                "name": "[parameters('SQL SubnetName')]",
+                "properties": {
+                  "addressPrefix": "[parameters('SQL SubnetAddressRange')]"
+                }
+             }
+          ]
+        }
+      }
+    ]
+  }
