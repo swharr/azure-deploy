@@ -94,6 +94,11 @@
         "name": "[parameters('DPEVMSize')]",
         "capacity": "[parameters('DPEVMSSInstanceCount')]"
       },
+      "plan": {
+        "name": "22000111",
+        "publisher": "accessdata-group",
+        "product": "adlab64-sw-cloud-preview"
+      },		  
       "properties": {
         "overprovision": true,
         "upgradePolicy": {
@@ -103,7 +108,7 @@
           "storageProfile": {
             "imageReference": {
               "publisher": "accessdata-group",
-              "offer": "adlab64-sw-cloud",
+              "offer": "adlab64-sw-cloud-preview",
               "sku": "22000111",
               "version": "1.0.1"
             },
@@ -183,7 +188,7 @@
                 }
               }
             ]
-          }
+          }		  
         }
       }
     },

@@ -146,6 +146,19 @@
                   }
                 },
                 {
+                  "name": "Allow-Vnet-UDP",
+                  "properties": {
+                    "protocol": "UDP",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
+                    "destinationAddressPrefix": "[parameters('AD SubnetAddressRange')]",
+                    "access": "Allow",
+                    "priority": 1001,
+                    "direction": "Inbound"
+                  }
+                },				
+                {
                   "name": "Deny-all",
                   "properties": {
                     "protocol": "*",

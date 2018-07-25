@@ -97,6 +97,11 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
       ],
+      "plan": {
+            "name": "22000112",
+            "publisher": "accessdata-group",
+            "product": "adlab64-sw-cloud-preview"
+        },		  
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('SQLVMSize')]"
@@ -109,19 +114,18 @@
         "storageProfile": {
           "imageReference": {
             "publisher": "accessdata-group",
-            "offer": "adlab64-sw-cloud",
+            "offer": "adlab64-sw-cloud-preview",
             "sku": "22000112",
-            "version": "1.0.1"
+            "version": "latest"
           },
           "osDisk": {
             "name": "SQLVM-osdisk",
-            "createOption": "FromImage"
-          },
-          "managedDisk": {
-            "storageAccountType": "Premium_LRS"
-          }
-        },
-        "dataDisks": [
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+              }
+			},
+         "dataDisks": [
           {
             "diskSizeGB": 2048,
             "name": "[concat(parameters('SQLVMName'),'-SQLData')]",
@@ -151,7 +155,8 @@
               "storageAccountType": "Premium_LRS"
             }
           }
-        ],
+         ]
+		},
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -164,7 +169,7 @@
             "enabled": false
           }
         }
-      }
+      }	  
     },
     {
       "apiVersion": "2017-03-30",
