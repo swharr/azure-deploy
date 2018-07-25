@@ -73,14 +73,6 @@
       "defaultValue": "[parameters('location')]"
     }
   },
-  "variables": {
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('InfraSubnetName'))]",
-    "loadBalancerName": "loadBalancer",
-    "loadBalancerFrontEndName": "loadBalancerFrontEnd",
-    "loadBalancerBackEndName": "loadBalancerBackEnd",
-    "loadBalancerProbeName": "loadBalancerHttpProbe"
-  },
   "resources": [
     {
       "type": "Microsoft.Compute/virtualMachineScaleSets",
@@ -98,7 +90,7 @@
         "name": "22000111",
         "publisher": "accessdata-group",
         "product": "adlab64-sw-cloud-preview"
-      },		  
+      },
       "properties": {
         "overprovision": true,
         "upgradePolicy": {
@@ -177,10 +169,10 @@
                   "autoUpgradeMinorVersion": true,
                   "settings": {
                     "Name": "[parameters('domainName')]",
+                    "Options": "[parameters('domainJoinOptions')]",
                     "OUPath": "[parameters('ouPath')]",
-                    "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
                     "Restart": "true",
-                    "Options": "[parameters('domainJoinOptions')]"
+                    "User": "concat(parameters('domainName), '\\' parameters('AdminUsername'))]"
                   },
                   "protectedSettings": {
                     "Password": "[parameters('adminPassword')]"
@@ -188,7 +180,7 @@
                 }
               }
             ]
-          }		  
+          }
         }
       }
     },
@@ -249,5 +241,13 @@
         ]
       }
     }
-  ]
+  ],
+  "variables": {
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('InfraSubnetName'))]",
+    "loadBalancerName": "loadBalancer",
+    "loadBalancerFrontEndName": "loadBalancerFrontEnd",
+    "loadBalancerBackEndName": "loadBalancerBackEnd",
+    "loadBalancerProbeName": "loadBalancerHttpProbe"
+  }
 }

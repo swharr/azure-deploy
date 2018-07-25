@@ -1,310 +1,310 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "virtualNetworkName": {
-        "type": "string",
-        "metadata": {
-          "description": "The name of the Virtual Network to Create"
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Virtual Network to Create"
+      }
+    },
+    "virtualNetworkAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the new VNET in CIDR format"
       },
-      "virtualNetworkAddressRange": {
-        "type": "string",
-        "metadata": {
-          "description": "The address range of the new VNET in CIDR format"
-        },
-        "defaultValue": "10.0.0.0/16"
+      "defaultValue": "10.0.0.0/16"
+    },
+    "DMZ SubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the subnet created in the new VNET"
+      }
+    },
+    "DMZ SubnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the subnet created in the new VNET"
       },
-      "DMZ SubnetName": {
-        "type": "string",
-        "metadata": {
-          "description": "The name of the subnet created in the new VNET"
-        }
+      "defaultValue": "10.0.0.0/24"
+    },
+    "AD SubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the subnet created in the new VNET"
+      }
+    },
+    "AD SubnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the subnet created in the new VNET"
       },
-      "DMZ SubnetAddressRange": {
-        "type": "string",
-        "metadata": {
-          "description": "The address range of the subnet created in the new VNET"
-        },
-        "defaultValue": "10.0.0.0/24"
+      "defaultValue": "10.0.0.0/24"
+    },
+    "InfraSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the subnet created in the new VNET"
+      }
+    },
+    "InfraSubnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the subnet created in the new VNET"
       },
-      "AD SubnetName": {
-        "type": "string",
-        "metadata": {
-          "description": "The name of the subnet created in the new VNET"
-        }
+      "defaultValue": "10.0.0.0/24"
+    },
+    "SQL SubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the subnet created in the new VNET"
+      }
+    },
+    "SQL SubnetAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "The address range of the subnet created in the new VNET"
       },
-      "AD SubnetAddressRange": {
-        "type": "string",
-        "metadata": {
-          "description": "The address range of the subnet created in the new VNET"
-        },
-        "defaultValue": "10.0.0.0/24"
-      },
-      "InfraSubnetName": {
-        "type": "string",
-        "metadata": {
-          "description": "The name of the subnet created in the new VNET"
-        }
-      },
-      "InfraSubnetAddressRange": {
-        "type": "string",
-        "metadata": {
-          "description": "The address range of the subnet created in the new VNET"
-        },
-        "defaultValue": "10.0.0.0/24"
-      },
-      "SQL SubnetName": {
-        "type": "string",
-        "metadata": {
-          "description": "The name of the subnet created in the new VNET"
-        }
-      },
-      "SQL SubnetAddressRange": {
-        "type": "string",
-        "metadata": {
-          "description": "The address range of the subnet created in the new VNET"
-        },
-        "defaultValue": "10.0.0.0/24"
-      },
-      "DNSServerAddress": {
-        "type": "array",
-        "metadata": {
-          "description": "The DNS address(es) of the DNS Server(s) used by the VNET"
-        }
-      },
+      "defaultValue": "10.0.0.0/24"
+    },
+    "DNSServerAddress": {
+      "type": "array",
+      "metadata": {
+        "description": "The DNS address(es) of the DNS Server(s) used by the VNET"
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "[parameters('location')]"
     }
-    },
-    "variables": {
-        "DMZNSGName": "[concat(parameters('DMZ SubnetName'),'-NSG')]",
-        "ADNSGName": "[concat(parameters('AD SubnetName'),'-NSG')]",
-        "InfraNSGName": "[concat(parameters('InfraSubnetName'),'-NSG')]",
-        "SQLNSGName": "[concat(parameters('SQL SubnetName'),'-NSG')]",
-        "DMZNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('DMZNSGName'))]",
-        "ADNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('ADNSGName'))]",
-        "InfraNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('InfraNSGName'))]",
-        "SQLNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('SQLNSGName'))]"
-    },
-    "resources": [
-        {
-            "name": "[variables('DMZNSGName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
+  },
+  "resources": [
+    {
+      "name": "[variables('DMZNSGName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-RDP",
             "properties": {
-              "securityRules": [
-                {
-                  "name": "Allow-RDP",
-                  "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "3389",
-                    "sourceAddressPrefix": "*",
-                    "destinationAddressPrefix": "[parameters('DMZ SubnetAddressRange')]",
-                    "access": "Allow",
-                    "priority": 1000,
-                    "direction": "Inbound"
-                  }
-                },
-                {
-                    "name": "Deny-all",
-                    "properties": {
-                      "protocol": "*",
-                      "sourcePortRange": "*",
-                      "destinationPortRange": "*",
-                      "sourceAddressPrefix": "*",
-                      "destinationAddressPrefix": "*",
-                      "access": "Deny",
-                      "priority": 1050,
-                      "direction": "Inbound"
-                    }
-                  }
-              ]
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[parameters('DMZ SubnetAddressRange')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
             }
           },
           {
-            "name": "[variables('ADNSGName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
+            "name": "Deny-all",
             "properties": {
-              "securityRules": [
-                {
-                  "name": "Allow-Vnet",
-                  "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
-                    "destinationAddressPrefix": "[parameters('AD SubnetAddressRange')]",
-                    "access": "Allow",
-                    "priority": 1000,
-                    "direction": "Inbound"
-                  }
-                },
-                {
-                  "name": "Allow-Vnet-UDP",
-                  "properties": {
-                    "protocol": "UDP",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
-                    "destinationAddressPrefix": "[parameters('AD SubnetAddressRange')]",
-                    "access": "Allow",
-                    "priority": 1001,
-                    "direction": "Inbound"
-                  }
-                },				
-                {
-                  "name": "Deny-all",
-                  "properties": {
-                    "protocol": "*",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationAddressPrefix": "*",
-                    "access": "Deny",
-                    "priority": 1050,
-                    "direction": "Inbound"
-                  }
-                }                
-              ]
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 1050,
+              "direction": "Inbound"
             }
-          },
-          {
-            "name": "[variables('InfraNSGName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
-            "properties": {
-              "securityRules": [
-                {
-                  "name": "Allow-Vnet",
-                  "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
-                    "destinationAddressPrefix": "[parameters('InfraSubnetAddressRange')]",
-                    "access": "Allow",
-                    "priority": 1000,
-                    "direction": "Inbound"
-                  }
-                },
-                {
-                  "name": "Deny-all",
-                  "properties": {
-                    "protocol": "*",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationAddressPrefix": "*",
-                    "access": "Deny",
-                    "priority": 1050,
-                    "direction": "Inbound"
-                  }
-                }               
-              ]
-            }
-          },
-          {
-            "name": "[variables('SQLNSGName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
-            "properties": {
-              "securityRules": [
-                {
-                  "name": "Allow-Vnet",
-                  "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
-                    "destinationAddressPrefix": "[parameters('SQL SubnetAddressRange')]",
-                    "access": "Allow",
-                    "priority": 1000,
-                    "direction": "Inbound"
-                  }
-                },
-                {
-                  "name": "Deny-all",
-                  "properties": {
-                    "protocol": "*",
-                    "sourcePortRange": "*",
-                    "destinationPortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationAddressPrefix": "*",
-                    "access": "Deny",
-                    "priority": 1050,
-                    "direction": "Inbound"
-                  }
-                }               
-              ]
-            }
-          },
-      {
-        "type": "Microsoft.Network/virtualNetworks",
-        "name": "[parameters('virtualNetworkName')]",
-        "apiVersion": "2017-06-01",
-        "location": "[parameters('location')]",
-        "dependsOn": [
-          "[concat('Microsoft.Network/networkSecurityGroups/', variables('DMZNSGName'))]",
-          "[concat('Microsoft.Network/networkSecurityGroups/', variables('ADNSGName'))]",
-          "[concat('Microsoft.Network/networkSecurityGroups/', variables('InfraNSGName'))]",
-          "[concat('Microsoft.Network/networkSecurityGroups/', variables('SQLNSGName'))]"
-        ],
-        "properties": {
-          "addressSpace": {
-            "addressPrefixes": [
-              "[parameters('virtualNetworkAddressRange')]"
-            ]
-          },
-          "dhcpOptions": {
-            "dnsServers": "[parameters('DNSServerAddress')]"
-          },
-          "subnets": [
-            {
-              "name": "[parameters('DMZ SubnetName')]",
-              "properties": {
-                "addressPrefix": "[parameters('DMZ SubnetAddressRange')]",
-                "networkSecurityGroup": {
-                  "id": "[variables('DMZNSGID')]"
-                }
-              }
-            },
-            {
-                "name": "[parameters('AD SubnetName')]",
-                "properties": {
-                  "addressPrefix": "[parameters('AD SubnetAddressRange')]",
-                  "networkSecurityGroup": {
-                    "id": "[variables('ADNSGID')]"
-                  }
-                }
-              },
-              {
-                "name": "[parameters('InfraSubnetName')]",
-                "properties": {
-                  "addressPrefix": "[parameters('InfraSubnetAddressRange')]",
-                  "networkSecurityGroup": {
-                    "id": "[variables('InfraNSGID')]"
-                  }
-                }
-              },
-              {
-                "name": "[parameters('SQL SubnetName')]",
-                "properties": {
-                  "addressPrefix": "[parameters('SQL SubnetAddressRange')]",
-                  "networkSecurityGroup": {
-                    "id": "[variables('SQLNSGID')]"
-                  }
-                }
-              }
-          ]
-        }
+          }
+        ]
       }
-    ]
+    },
+    {
+      "name": "[variables('ADNSGName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-Vnet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
+              "destinationAddressPrefix": "[parameters('AD SubnetAddressRange')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow-Vnet-UDP",
+            "properties": {
+              "protocol": "Udp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
+              "destinationAddressPrefix": "[parameters('AD SubnetAddressRange')]",
+              "access": "Allow",
+              "priority": 1001,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny-all",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 1050,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('InfraNSGName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-Vnet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
+              "destinationAddressPrefix": "[parameters('InfraSubnetAddressRange')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny-all",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 1050,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('SQLNSGName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-Vnet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[parameters('virtualNetworkAddressRange')]",
+              "destinationAddressPrefix": "[parameters('SQL SubnetAddressRange')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny-all",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 1050,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('virtualNetworkName')]",
+      "apiVersion": "2017-06-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('DMZNSGName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('ADNSGName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('InfraNSGName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('SQLNSGName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('virtualNetworkAddressRange')]"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": "[parameters('DNSServerAddress')]"
+        },
+        "subnets": [
+          {
+            "name": "[parameters('DMZ SubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('DMZ SubnetAddressRange')]",
+              "networkSecurityGroup": {
+                "id": "[variables('DMZNSGID')]"
+              }
+            }
+          },
+          {
+            "name": "[parameters('AD SubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('AD SubnetAddressRange')]",
+              "networkSecurityGroup": {
+                "id": "[variables('ADNSGID')]"
+              }
+            }
+          },
+          {
+            "name": "[parameters('InfraSubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('InfraSubnetAddressRange')]",
+              "networkSecurityGroup": {
+                "id": "[variables('InfraNSGID')]"
+              }
+            }
+          },
+          {
+            "name": "[parameters('SQL SubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('SQL SubnetAddressRange')]",
+              "networkSecurityGroup": {
+                "id": "[variables('SQLNSGID')]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "variables": {
+    "DMZNSGName": "[concat(parameters('DMZ SubnetName'),'-NSG')]",
+    "ADNSGName": "[concat(parameters('AD SubnetName'),'-NSG')]",
+    "InfraNSGName": "[concat(parameters('InfraSubnetName'),'-NSG')]",
+    "SQLNSGName": "[concat(parameters('SQL SubnetName'),'-NSG')]",
+    "DMZNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('DMZNSGName'))]",
+    "ADNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('ADNSGName'))]",
+    "InfraNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('InfraNSGName'))]",
+    "SQLNSGID": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('SQLNSGName'))]"
   }
+}

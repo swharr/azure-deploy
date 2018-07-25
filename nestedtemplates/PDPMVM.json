@@ -187,7 +187,7 @@
         "settings": {
           "Name": "[parameters('domainName')]",
           "OUPath": "[parameters('ouPath')]",
-          "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
+          "User": "concat(parameters('domainName), '\\' parameters('AdminUsername'))]",
           "Restart": "true",
           "Options": "[parameters('domainJoinOptions')]"
         },
@@ -206,7 +206,7 @@
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
+        "type": "Object",
         "typeHandlerVersion": "1.8",
         "autoUpgradeMinorVersion": true,
         "settings": {

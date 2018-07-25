@@ -16,7 +16,7 @@ This software requires an active and valid license to use. This license is _**NO
 - Email AD Cloud Engineering Team: adcloud@accessdata.com
 
 ## Server(s) included
-
+- Single Node Active Directory Controller that stands up the Active Directory 'adlab.local'
 - Microsoft SQL Server 2016 - Standard Edition
 - Microsoft Windows Server 2016 - Standard Edition w/ Desktop Experience.
 <<<<<<< HEAD

@@ -213,18 +213,18 @@
       }
     },
     "_artifactsLocation": {
-      "type": "string",
+      "defaultValue": "[deployment().templateLink]",
       "metadata": {
         "description": "The location of resources, such as templates and DSC modules, that the template depends on"
       },
-      "defaultValue": "[deployment().properties.templateLink.uri]"
+      "type": "string"
     },
     "_artifactsLocationSasToken": {
-      "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Auto-generated token to access _artifactsLocation"
       },
-      "defaultValue": ""
+      "type": "securestring"
     },
     "location": {
       "type": "string",
@@ -238,7 +238,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "VNet",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -285,7 +285,7 @@
     {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('adNicName')]",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2018-02-01",
       "location": "[parameters('location')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/VNet"
@@ -308,7 +308,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('AD VM Name')]",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2017-12-01",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces', variables('adNicName'))]"
@@ -354,69 +354,69 @@
       },
       "resources": [
         {
-          "type": "extensions",
-          "name": "CreateADForest",
-          "apiVersion": "2018-04-01",
-          "location": "[parameters('location')]",
+          "apiVersion": "2017-12-01",
           "dependsOn": [
             "[resourceId('Microsoft.Compute/virtualMachines', parameters('ad VM Name'))]"
           ],
+          "location": "[parameters('location')]",
+          "name": "CreateADForest",
           "properties": {
-            "publisher": "Microsoft.Powershell",
-            "type": "DSC",
-            "typeHandlerVersion": "2.19",
             "autoUpgradeMinorVersion": true,
-            "settings": {
-              "ModulesUrl": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateADPDC.zip', parameters('_artifactsLocationSasToken')))]",
-              "ConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
-              "Properties": {
-                "DomainName": "[parameters('domainName')]",
-                "AdminCreds": {
-                  "UserName": "[parameters('AdminUsername')]",
-                  "Password": "PrivateSettingsRef:AdminPassword"
-                }
-              }
-            },
             "protectedSettings": {
               "Items": {
                 "AdminPassword": "[parameters('AdminPassword')]"
               }
-            }
-          }
+            },
+            "publisher": "Microsoft.Powershell",
+            "settings": {
+              "ConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
+              "ModulesUrl": "[uri(parameters('_artifactsLocation'), concat('DSC/CreateADPDC.zip', parameters('_artifactsLocationSasToken')))]",
+
+              "Properties": {
+                "AdminCreds": {
+                  "UserName": "[parameters('AdminUsername')]",
+                  "Password": "PrivateSettingsRef:AdminPassword"
+                },
+                "DomainName": "[parameters('domainName')]"
+              }
+            },
+            "type": "Object",
+            "typeHandlerVersion": "2.19"
+          },
+          "type": "extensions"
         },
         {
           "type": "extensions",
           "name": "CustomScriptExtension",
-          "apiVersion": "2018-04-01",
+          "apiVersion": "2017-12-01",
           "location": "[parameters('location')]",
           "dependsOn": [
             "[resourceId('Microsoft.Compute/virtualMachines', parameters('ad VM Name'))]",
             "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('ad VM Name'), 'CreateADForest')]"
           ],
           "properties": {
-            "publisher": "Microsoft.Compute",
-            "type": "CustomScriptExtension",
-            "typeHandlerVersion": "1.8",
             "autoUpgradeMinorVersion": true,
+            "protectedSettings": {
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File \"./customscripts/updateou.ps1\"', ' -OUname ', parameters('ouname'), ' -DomainName ', parameters('DomainName'), ' -Username ', parameters('AdminUsername'), ' -Password ', parameters('AdminPassword'))]"
+            },
+            "publisher": "Microsoft.Compute",
             "settings": {
               "fileUris": [
                 "[uri(parameters('_artifactsLocation'), concat('customscripts/updateou.ps1', parameters('_artifactsLocationSasToken')))]"
               ]
             },
-            "protectedSettings": {
-              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File \"./customscripts/updateou.ps1\"', ' -OUname ', parameters('ouname'), ' -DomainName ', parameters('DomainName'), ' -Username ', parameters('AdminUsername'), ' -Password ', parameters('AdminPassword'))]"
-            }
+            "type": "Object",
+            "typeHandlerVersion": "1.8"
           }
         }
       ]
     },
     {
-      "type": "Microsoft.Resources/deployments",
-      "name": "UpdateVNetDNS",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('ad VM Name'), 'CreateADForest')]"
       ],
+      "name": "UpdateVNetDNS",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -463,12 +463,13 @@
             ]
           }
         }
-      }
+      },
+      "type": "Microsoft.Resources/deployments"
     },
     {
       "type": "Microsoft.Resources/deployments",
       "name": "JBVM",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
@@ -515,7 +516,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "LabVM",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
@@ -562,7 +563,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "SQLVM",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
@@ -609,7 +610,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "DPMVM",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
@@ -656,7 +657,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "DPE-VMSS",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
@@ -706,7 +707,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "name": "UpdateNSG",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2017-05-10",
       "dependsOn": [
         "Microsoft.Resources/deployments/DPE-VMSS",
         "Microsoft.Resources/deployments/DPMVM",
@@ -716,10 +717,6 @@
       ],
       "properties": {
         "mode": "Incremental",
-        "templateLink": {
-          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnet-with-dns-server-NSG.json', parameters('_artifactsLocationSasToken')))]",
-          "contentVersion": "1.0.0.0"
-        },
         "parameters": {
           "location": {
             "value": "[parameters('location')]"
@@ -759,6 +756,10 @@
               "[parameters('AD StaticIP')]"
             ]
           }
+        },
+        "templateLink": {
+          "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnet-with-dns-server-NSG.json', parameters('_artifactsLocationSasToken')))]",
+          "contentVersion": "1.0.0.0"
         }
       }
     }
